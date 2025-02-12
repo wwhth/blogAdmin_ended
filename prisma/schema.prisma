@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model blog_article {
+  id            Int            @default(autoincrement())
+  title         String         @default("") @db.VarChar(150)
+  category_id   Int?
+  label_id      Int?
+  author        Int
+  content       String         @db.Text
+  created_at    DateTime       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime       @default(now()) @db.Timestamp(0)
+  intro         String?        @db.VarChar(255)
+  artical_type  Boolean        @default(false)
+  blog_category blog_category? @relation(fields: [category_id], references: [id], onDelete: Cascade, map: "blog_article_ibfk_1")
+  blog_label    blog_label?    @relation(fields: [label_id], references: [id], onDelete: Cascade, map: "blog_article_ibfk_2")
+  user_account  user_account   @relation(fields: [author], references: [id], onDelete: Cascade, map: "blog_article_ibfk_3")
+
+  @@id([id, author])
+  @@index([author], map: "author")
+  @@index([category_id], map: "category_id")
+  @@index([label_id], map: "label_id")
+}
+
+model blog_category {
+  id            Int            @id @default(autoincrement())
+  category_name String         @db.VarChar(255)
+  created_at    DateTime       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime       @default(now()) @db.Timestamp(0)
+  blog_article  blog_article[]
+  blog_label    blog_label[]
+}
+
+model blog_label {
+  id            Int            @id @default(autoincrement())
+  label_name    String         @db.VarChar(255)
+  created_at    DateTime       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime       @default(now()) @db.Timestamp(0)
+  category_id   Int?
+  blog_article  blog_article[]
+  blog_category blog_category? @relation(fields: [category_id], references: [id], onDelete: Cascade, map: "blog_label_ibfk_1")
+
+  @@index([category_id], map: "category_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model blog_menu {
+  id   BigInt
+  url  String? @db.VarChar(200)
+  name String? @db.VarChar(20)
+  sort Int
+  type Int
+  icon String? @db.VarChar(40)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model blog_menu_child {
+  id       BigInt
+  url      String? @db.VarChar(200)
+  name     String? @db.VarChar(20)
+  sort     Int
+  type     Int
+  parentId BigInt
+  icon     String? @db.VarChar(20)
+
+  @@ignore
+}
+
+model user_account {
+  id           Int            @id
+  name         String?        @db.VarChar(50)
+  password     String?        @db.VarChar(100)
+  creatAt      DateTime?      @db.Timestamp(0)
+  updateAt     DateTime?      @db.Timestamp(0)
+  role_id      Int?
+  blog_article blog_article[]
+}
