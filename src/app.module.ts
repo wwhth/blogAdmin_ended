@@ -3,15 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { LoginModule } from './login/login.module';
-import { LoginMiddleware } from './login/login.middleware';
+import { VerifyAuthMiddleware } from './app.middleware';
 @Module({
   imports: [UserModule, LoginModule],
   controllers: [AppController],
-  providers: [AppService,LoginMiddleware],
+  providers: [AppService],
 })
-export class AppModule {}
-// implements NestModule {
-//   configure(consumer: MiddlewareConsumer) {
-//     consumer.apply(LoginMiddleware).forRoutes('*');
-//   }
-// }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(VerifyAuthMiddleware).exclude('login').forRoutes('*');
+  }
+}
